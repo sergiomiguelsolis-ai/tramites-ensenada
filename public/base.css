@@ -3,6 +3,7 @@
 
 /* ================= Paleta: guinda, marrón y dorado. Inicia en blanco; el modo noche es opcional. ================= */
 :root {
+  color-scheme: only light; /* el navegador nunca debe oscurecerla por su cuenta */
   --vino: #741c3c;
   --vino-oscuro: #561329;
   --marron: #6b4a3a;
