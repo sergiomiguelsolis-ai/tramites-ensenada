@@ -1,0 +1,217 @@
+/* Estilos compartidos por todas las páginas de Trámites Ensenada:
+   paleta, menú, botón guinda, fondo con partículas, etiqueta editorial y pie de página. */
+
+/* ================= Paleta: guinda, marrón y dorado. Inicia en blanco; el modo noche es opcional. ================= */
+:root {
+  --vino: #741c3c;
+  --vino-oscuro: #561329;
+  --marron: #6b4a3a;
+  --dorado: #c8a45d;
+  --dorado-claro: #e9d3a3;
+  --crema: #faf5ec;
+
+  --fondo: #ffffff;
+  --superficie: #ffffff;
+  --burbuja: #f7f3ef;
+  --texto: #2a1a1f;
+  --suave: #7a6a66;
+  --borde: #ece4dc;
+  --acento-texto: #741c3c;
+  --enfasis: #561329;
+  --nav-fondo: rgba(255, 255, 255, 0.72);
+  --nav-borde: rgba(116, 28, 60, 0.12);
+  --resplandor: rgba(116, 28, 60, 0.09);
+  --resplandor-2: rgba(200, 164, 93, 0.12);
+  --estrellas: 0;
+  --logo: #6b1030;
+  --marfil: #f8f7f6;
+  --titulo: #741c3c;
+  --halo-vino: rgba(116, 28, 60, 0.085);
+  --halo-vino-2: rgba(116, 28, 60, 0.06);
+  --halo-arena: rgba(200, 164, 93, 0.14);
+  --particula: 116, 28, 60;
+  --borde-arena: rgba(200, 164, 93, 0.45);
+  --aro: rgba(200, 164, 93, 0.07);
+  --aro-fuerte: rgba(200, 164, 93, 0.14);
+  --placeholder: #9a8c87;
+  --pill-fondo: rgba(255, 255, 255, 0.9);
+  --borde-pill: rgba(116, 28, 60, 0.12);
+}
+:root[data-tema="oscuro"] {
+  --fondo: #0b0708;
+  --superficie: #120c0e;
+  --burbuja: #1c1416;
+  --texto: #f1e9e6;
+  --suave: #b1a19c;
+  --borde: #2f2226;
+  --acento-texto: #e9c98a;
+  --enfasis: #ffffff;
+  --nav-fondo: rgba(255, 255, 255, 0.025);
+  --nav-borde: rgba(255, 255, 255, 0.1);
+  --resplandor: rgba(116, 28, 60, 0.34);
+  --resplandor-2: rgba(200, 164, 93, 0.07);
+  --estrellas: 1;
+  --logo: #f1e9e6;
+  --marfil: #0f0a0b;
+  --titulo: #ffffff;
+  --halo-vino: rgba(116, 28, 60, 0.32);
+  --halo-vino-2: rgba(116, 28, 60, 0.2);
+  --halo-arena: rgba(200, 164, 93, 0.06);
+  --particula: 214, 120, 152;
+  --borde-arena: rgba(200, 164, 93, 0.35);
+  --aro: rgba(200, 164, 93, 0.05);
+  --aro-fuerte: rgba(200, 164, 93, 0.1);
+  --placeholder: #8a7c78;
+  --pill-fondo: rgba(255, 255, 255, 0.04);
+  --borde-pill: rgba(255, 255, 255, 0.1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: Poppins, system-ui, -apple-system, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  transition: background-color 0.3s, color 0.3s;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+
+/* ================= Fondo: resplandor guinda + estrellas (solo de noche) ================= */
+.fondo {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+radial-gradient(55% 38% at 50% 4%, var(--resplandor), transparent 70%),
+radial-gradient(35% 30% at 88% 22%, var(--resplandor-2), transparent 70%),
+radial-gradient(30% 25% at 10% 40%, var(--resplandor-2), transparent 70%);
+  transition: background 0.3s;
+}
+.estrellas { position: absolute; left: 0; top: 0; width: 1px; height: 1px; border-radius: 50%; background: #fff; opacity: var(--estrellas); transition: opacity 0.4s; }
+
+.cont { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+/* ================= Menú de vidrio ================= */
+.nav {
+  position: sticky; top: 12px; z-index: 50;
+  max-width: 880px; height: 60px; margin: 12px auto 0;
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 10px 0 12px;
+  border-radius: 30px;
+  background: var(--nav-fondo);
+  border: 1px solid var(--nav-borde);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.marca { display: flex; align-items: center; gap: 10px; }
+/* Logo (imagen recortada del logo oficial del proyecto) */
+.marca .logo { flex: none; display: block; height: 40px; width: auto; }
+/* De noche el logo guinda va sobre una placa crema para que se siga leyendo */
+:root[data-tema="oscuro"] .marca .logo { background: #f6f2ec; border-radius: 10px; padding: 3px 4px; height: 40px; }
+.marca .wm { line-height: 1; }
+.marca .wm small { display: block; font-size: 8.5px; font-weight: 500; letter-spacing: 0.34em; color: var(--logo); margin-bottom: 3px; }
+.marca .wm b { font-size: 18px; font-weight: 800; letter-spacing: 0.02em; color: var(--logo); }
+.links { display: flex; gap: 22px; margin: 0 auto; }
+.links a { font-size: 13px; color: var(--suave); transition: color 0.2s; }
+.links a:hover { color: var(--acento-texto); }
+.links a[aria-current="page"] { color: var(--acento-texto); font-weight: 600; }
+.nav-der { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.tema {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: transparent; border: 1px solid var(--borde);
+  color: var(--suave); opacity: 0.75; cursor: pointer;
+  transition: opacity 0.2s, color 0.2s, border-color 0.2s;
+}
+.tema:hover, .tema:focus-visible { opacity: 1; color: var(--dorado); border-color: var(--dorado); }
+.tema .sol { display: none; }
+:root[data-tema="oscuro"] .tema .sol { display: block; }
+:root[data-tema="oscuro"] .tema .luna { display: none; }
+
+/* ================= Botón con luz al pie (guinda + dorado) ================= */
+.btn {
+  position: relative; overflow: hidden;
+  display: inline-grid; place-items: center;
+  color: #fff; font-weight: 500; white-space: nowrap;
+  /* Banco de luz al pie, recortado por el propio botón (overflow: hidden) */
+  background: linear-gradient(to top,
+#f6d3dd 1px, #efbccb 2px, #e3a0b4 3px, #d3849c 4px, #c06a85 5px,
+#ad5473 6px, #9c4264 7px, #8f3659 8px, #852e51 9px, #7e294b 10px,
+#7a2546 12px, #772243 14px, #75203f 16px, #741e3e 18px,
+#741c3c 22px, #741c3c 100%);
+  box-shadow:
+inset 0 3px 3px -2px rgba(255, 220, 230, 0.16),
+inset 1px 0 0 rgba(255, 255, 255, 0.1),
+inset -1px 0 0 rgba(255, 255, 255, 0.1),
+0 1px 0 rgba(239, 188, 203, 0.45),
+1px 0 0 rgba(239, 188, 203, 0.18), -1px 0 0 rgba(239, 188, 203, 0.18),
+0 0 8px rgba(116, 28, 60, 0.12),
+0 2px 5px -3px rgba(116, 28, 60, 0.6);
+  transition: transform 0.25s, filter 0.25s, box-shadow 0.25s;
+}
+.btn::before {
+  content: ""; position: absolute; left: 22%; right: 38%; top: 0.8px; height: 1.9px; z-index: 1;
+  filter: blur(0.55px);
+  background: linear-gradient(90deg, rgba(255, 210, 222, 0) 0%, rgba(255, 210, 222, 0.5) 34%, rgba(255, 232, 238, 0.7) 50%, rgba(255, 210, 222, 0.5) 66%, rgba(255, 210, 222, 0) 100%);
+}
+.btn::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 1;
+  background: linear-gradient(90deg, rgba(255, 225, 233, 0.55), rgba(255, 225, 233, 0) 13px),
+          linear-gradient(270deg, rgba(255, 225, 233, 0.55), rgba(255, 225, 233, 0) 13px);
+  -webkit-mask: linear-gradient(to top, #000 0, #000 6px, rgba(0,0,0,.4) 12px, rgba(0,0,0,.15) 18px, rgba(0,0,0,.09) 24px, rgba(0,0,0,.02) 30px, rgba(0,0,0,.02) 100%);
+      mask: linear-gradient(to top, #000 0, #000 6px, rgba(0,0,0,.4) 12px, rgba(0,0,0,.15) 18px, rgba(0,0,0,.09) 24px, rgba(0,0,0,.02) 30px, rgba(0,0,0,.02) 100%);
+}
+.btn > * { position: relative; z-index: 2; }
+.btn:hover { transform: translateY(-1px); filter: brightness(1.12); }
+.nav .btn { height: 40px; padding: 0 18px; border-radius: 14px; font-size: 13.5px; }
+
+/* Fondo del hero a todo lo ancho: marfil, halo guinda detrás del título y partículas guinda flotando */
+.hero-deco {
+  position: absolute; top: -96px; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
+  z-index: -1; pointer-events: none; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent);
+      mask-image: linear-gradient(180deg, #000 70%, transparent);
+  background:
+radial-gradient(38% 34% at 50% 34%, var(--halo-vino), transparent 72%),
+radial-gradient(30% 40% at 6% 92%, var(--halo-arena), transparent 70%),
+radial-gradient(28% 36% at 96% 88%, var(--halo-vino-2), transparent 70%),
+linear-gradient(180deg, var(--fondo) 0%, var(--marfil) 62%, var(--fondo) 100%);
+}
+.hero-deco canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.micro {
+  display: inline-flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center;
+  font-size: 11.5px; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; color: var(--acento-texto);
+}
+.micro::before { content: ""; width: 26px; height: 2px; border-radius: 2px; background: var(--dorado); }
+.micro span { color: var(--suave); font-weight: 500; letter-spacing: 0.3em; }
+
+footer { margin-top: 70px; padding: 26px 0 40px; border-top: 1px solid var(--borde); text-align: center; font-size: 12px; color: var(--suave); line-height: 1.7; }
+footer a { color: var(--acento-texto); font-weight: 500; }
+.logo-pie { display: block; margin: 0 auto 14px; width: 160px; height: auto; }
+:root[data-tema="oscuro"] .logo-pie { background: #f6f2ec; border-radius: 16px; padding: 12px 16px; width: 190px; }
+
+
+/* Aparición suave al hacer scroll */
+.aparece { opacity: 0; translate: 0 24px; transition: opacity 0.9s cubic-bezier(.16,1,.3,1), translate 0.9s cubic-bezier(.16,1,.3,1); }
+.aparece.visible { opacity: 1; translate: 0 0; }
+
+/* ================= Celular y tablet ================= */
+@media (max-width: 860px) {
+  .links { display: none; }
+}
+@media (max-width: 600px) {
+  .nav { height: 56px; top: 8px; margin-top: 8px; gap: 8px; }
+  .marca .wm b { font-size: 16px; }
+  .nav .btn { height: 38px; padding: 0 13px; font-size: 12.5px; }
+  .nav .btn .largo { display: none; }
+  .micro { font-size: 10px; letter-spacing: 0.24em; gap: 10px; }
+  .micro span { letter-spacing: 0.2em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aparece { opacity: 1; translate: none; transition: none; }
+  html { scroll-behavior: auto; }
+}

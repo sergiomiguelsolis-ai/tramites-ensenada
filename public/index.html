@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#741c3c" />
+  <title>Trámites Ensenada</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
+  <meta name="description" content="Asistente con inteligencia artificial para entender los trámites del Ayuntamiento de Ensenada. Demo no oficial." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/base.css" />
+  <style>
+    /* ================= Hero: pregunta inmediata ================= */
+    .hero {
+      position: relative;
+      min-height: calc(100svh - 84px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 40px 0 48px;
+    }
+    .hero h1 { margin-top: 22px; font-size: clamp(34px, 5.6vw, 70px); line-height: 1.1; letter-spacing: -0.035em; }
+    .hero h1 span { display: block; }
+    .hero h1 .l1 { font-weight: 700; color: var(--titulo); }
+    .hero h1 .l2 {
+      font-weight: 500;
+      background: linear-gradient(95deg, var(--marron) 10%, #9c7a55 90%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      padding-bottom: 0.06em;
+    }
+    :root[data-tema="oscuro"] .hero h1 .l2 { background: none; color: var(--dorado-claro); }
+
+    /* ================= El buscador: es el chat del asistente ================= */
+    .buscador {
+      position: relative; width: 100%; max-width: 840px; margin-top: 40px;
+      text-align: left;
+      background: var(--superficie);
+      border: 1px solid var(--borde-arena);
+      border-radius: 28px;
+      box-shadow: 0 0 0 7px var(--aro), 0 34px 70px -34px rgba(116, 28, 60, 0.32), 0 10px 26px -16px rgba(116, 28, 60, 0.14);
+      transition: box-shadow 0.3s, border-color 0.3s;
+      scroll-margin-top: 92px;
+    }
+    .buscador:focus-within { border-color: var(--dorado); box-shadow: 0 0 0 7px var(--aro-fuerte), 0 34px 70px -34px rgba(116, 28, 60, 0.38), 0 10px 26px -16px rgba(116, 28, 60, 0.16); }
+
+    .conversacion { border-bottom: 1px solid var(--borde); }
+    .conv-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 22px 6px; font-size: 12.5px; color: var(--suave); }
+    .conv-cabeza .quien { display: inline-flex; align-items: center; gap: 8px; }
+    .conv-cabeza .quien::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #6aa457; box-shadow: 0 0 0 3px rgba(106, 164, 87, 0.18); }
+    .conv-cabeza em { font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--acento-texto); border: 1px solid var(--borde-arena); padding: 2px 7px; border-radius: 6px; }
+    .conv-cabeza button { background: none; border: 0; color: var(--acento-texto); font-size: 12.5px; font-weight: 500; cursor: pointer; padding: 4px 2px; }
+    .conv-cabeza button:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+    main#chat {
+      max-height: clamp(300px, 52svh, 540px); overflow-y: auto;
+      padding: 8px clamp(14px, 3vw, 24px) 18px;
+      display: flex; flex-direction: column; gap: 10px;
+      scroll-behavior: smooth;
+    }
+    .msg { max-width: 86%; padding: 11px 14px; border-radius: 16px; line-height: 1.55; font-size: 14.5px; overflow-wrap: anywhere; animation: entra 0.35s cubic-bezier(.16,1,.3,1); }
+    @keyframes entra { from { opacity: 0; translate: 0 6px; } }
+    .bot { background: var(--burbuja); border: 1px solid var(--borde); border-left: 3px solid var(--dorado); border-top-left-radius: 6px; align-self: flex-start; }
+    .yo { background: var(--vino); color: #fff; border-top-right-radius: 6px; align-self: flex-end; white-space: pre-wrap; box-shadow: 0 4px 14px -6px rgba(116, 28, 60, 0.5); }
+    .msg p { margin: 0 0 8px; }
+    .msg p:last-child, .msg ul:last-child, .msg ol:last-child { margin-bottom: 0; }
+    .msg ul, .msg ol { margin: 4px 0 8px; padding-left: 20px; }
+    .msg li { margin: 2px 0; }
+    .msg li::marker { color: var(--dorado); }
+    .msg h3, .msg h4 { font-size: 14.5px; margin: 6px 0 4px; color: var(--acento-texto); }
+    .msg strong { color: var(--enfasis); font-weight: 600; }
+    .yo strong { color: #fff; }
+    .msg a { color: var(--acento-texto); font-weight: 600; text-decoration: underline; text-decoration-color: var(--dorado); text-underline-offset: 2px; }
+    .msg code { font-size: 12.5px; background: var(--crema); border: 1px solid var(--borde); padding: 1px 5px; border-radius: 5px; color: var(--vino); }
+    .estado { font-size: 13px; color: var(--suave); display: flex; align-items: center; gap: 8px; }
+    .puntos { display: inline-flex; gap: 3px; }
+    .puntos i { width: 6px; height: 6px; border-radius: 50%; background: var(--dorado); animation: brinco 1.2s infinite ease-in-out; }
+    .puntos i:nth-child(2) { animation-delay: 0.15s; }
+    .puntos i:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes brinco { 0%, 80%, 100% { opacity: 0.35; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+
+    form#form { padding: 20px 20px 14px 22px; }
+    textarea {
+      display: block; width: 100%; resize: none;
+      border: 0; outline: none; background: transparent;
+      font: inherit; font-size: 17px; line-height: 1.5; color: var(--texto);
+      min-height: 54px; max-height: 160px; padding: 2px 4px;
+    }
+    textarea::placeholder { color: var(--placeholder); }
+    .sugerencias { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .sugerencias[hidden] { display: none; }
+    .sugerencias button {
+      font-size: 13px; line-height: 1.3; text-align: left; cursor: pointer;
+      background: transparent; color: var(--acento-texto);
+      border: 1px solid var(--dorado-claro); padding: 8px 13px; border-radius: 999px;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    :root[data-tema="oscuro"] .sugerencias button { border-color: rgba(233, 211, 163, 0.35); }
+    .sugerencias button:hover, .sugerencias button:focus-visible { background: var(--vino); border-color: var(--vino); color: #fff; outline: none; }
+    .acciones { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+    .lugar {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 15px 0 12px; border-radius: 999px;
+      border: 1px solid var(--borde); background: var(--superficie);
+      font-size: 13px; color: var(--texto); white-space: nowrap;
+    }
+    .lugar svg { color: var(--marron); }
+    :root[data-tema="oscuro"] .lugar svg { color: var(--dorado-claro); }
+    .acciones .espacio { flex: 1; }
+    .mic {
+      width: 44px; height: 44px; border-radius: 50%; border: 0; background: transparent;
+      color: var(--texto); display: grid; place-items: center; cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .mic:hover { background: var(--burbuja); }
+    .mic.escuchando { background: var(--vino); color: #fff; animation: latido 1.4s infinite; }
+    @keyframes latido { 0% { box-shadow: 0 0 0 0 rgba(116, 28, 60, 0.4); } 70% { box-shadow: 0 0 0 12px rgba(116, 28, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(116, 28, 60, 0); } }
+    .enviar {
+      width: 50px; height: 50px; border-radius: 50%; border: 0; cursor: pointer; flex: none;
+      color: #fff; display: grid; place-items: center;
+      background: radial-gradient(circle at 50% 28%, #8d2c50, #741c3c 58%, #5f1631);
+      box-shadow: 0 10px 20px -10px rgba(116, 28, 60, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+      transition: transform 0.15s, filter 0.2s;
+    }
+    .enviar:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .enviar:active { transform: scale(0.9); }
+    .enviar:disabled { opacity: 0.5; cursor: default; transform: none; filter: none; }
+
+    /* ================= Lo más consultado: píldoras en movimiento continuo ================= */
+    .consultados { width: 100%; max-width: 1100px; margin-top: 46px; text-align: left; }
+    .consultados-tit {
+      display: flex; align-items: center; gap: 10px; margin: 0 0 12px 8px;
+      font-size: 11.5px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; color: var(--texto);
+    }
+    .consultados-tit::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--dorado); }
+    .marquee {
+      position: relative; overflow: hidden; padding: 8px 0 18px;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+              mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+      touch-action: pan-y; cursor: grab;
+    }
+    .marquee.arrastrando { cursor: grabbing; }
+    .pista { display: flex; gap: 14px; width: max-content; will-change: transform; }
+    .pill {
+      flex: none; display: inline-flex; align-items: center; gap: 10px;
+      height: 48px; padding: 0 18px 0 15px; border-radius: 999px;
+      background: var(--pill-fondo); border: 1px solid var(--borde-pill);
+      color: var(--texto); font-size: 14px; white-space: nowrap; cursor: pointer; user-select: none;
+      box-shadow: 0 8px 18px -12px rgba(116, 28, 60, 0.3);
+      transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.25s;
+    }
+    .pill svg { color: var(--acento-texto); flex: none; transition: color 0.25s; }
+    .pill .punto { width: 6px; height: 6px; border-radius: 50%; background: var(--dorado); margin-left: 4px; }
+    .pill:hover, .pill:focus-visible { background: var(--vino); border-color: var(--vino); color: #fff; transform: translateY(-2px); outline: none; }
+    .pill:hover svg, .pill:focus-visible svg { color: #fff; }
+
+    .nota-hero { margin-top: 26px; display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--suave); line-height: 1.5; }
+    .nota-hero svg { color: var(--dorado); flex: none; }
+    .nota-hero b { color: var(--acento-texto); font-weight: 600; }
+
+    /* Etiqueta con ícono (encabezado de la sección de tarjetas) */
+    .etiqueta {
+      position: relative; display: inline-flex; align-items: center;
+      height: 39px; padding: 0 16px 0 45px; border-radius: 12px;
+      font-size: 13px; color: var(--texto);
+      border: 1px solid var(--nav-borde);
+      background: linear-gradient(to top, rgba(200, 164, 93, 0.22) 0, rgba(200, 164, 93, 0.13) 2px, rgba(200, 164, 93, 0.06) 4px, rgba(200, 164, 93, 0.02) 7px, transparent 10px), var(--nav-fondo);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    }
+    .etiqueta i {
+      position: absolute; left: 4px; top: 4px; width: 29px; height: 29px; border-radius: 8px;
+      display: grid; place-items: center; color: #fff;
+      background: linear-gradient(to top, #f2c7d3 0, #dc95ab 2px, #c06a85 4px, #a04a68 6px, #8c3456 8px, #7e264a 10px, #761f40 13px, #741c3c 29px);
+      box-shadow: inset 1px 0 0 rgba(255, 220, 230, 0.35), inset -1px 0 0 rgba(255, 220, 230, 0.45), 0 3px 8px -5px rgba(116, 28, 60, 0.8);
+    }
+
+    /* ================= Carrusel de trámites populares ================= */
+    .populares { padding: 110px 0 40px; text-align: center; }
+    .populares h2 {
+      margin-top: 20px; font-weight: 900; text-transform: uppercase;
+      font-size: clamp(30px, 5vw, 52px); line-height: 1; letter-spacing: -0.01em; color: var(--acento-texto);
+    }
+    .populares h2 span { color: var(--dorado); }
+    .populares .sub { margin: 14px auto 0; max-width: 520px; color: var(--suave); font-size: 15px; line-height: 1.55; }
+    .ruedo { position: relative; height: 370px; margin-top: 26px; overflow: hidden; touch-action: pan-y; cursor: grab; }
+    .ruedo.arrastrando { cursor: grabbing; }
+    .ruedo::before, .ruedo::after { content: ""; position: absolute; top: 0; bottom: 0; width: 12%; z-index: 10; pointer-events: none; }
+    .ruedo::before { left: 0; background: linear-gradient(90deg, var(--fondo), transparent); }
+    .ruedo::after { right: 0; background: linear-gradient(270deg, var(--fondo), transparent); }
+    /* Cinta de tarjetas planas que se desliza sola de derecha a izquierda */
+    .cinta { position: absolute; left: 0; top: 24px; display: flex; gap: 20px; will-change: transform; }
+    .carta {
+      position: relative; flex: none; width: 170px; height: 300px;
+      border-radius: 18px; overflow: hidden; cursor: pointer;
+      display: flex; flex-direction: column; text-align: left;
+      padding: 16px 14px 14px;
+      box-shadow: 0 24px 46px -10px rgba(40, 10, 20, 0.35), 0 3px 8px rgba(40, 10, 20, 0.18);
+      user-select: none;
+    }
+    .carta .borde { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), inset 0 16px 30px rgba(255, 255, 255, 0.06); }
+    .carta .agua { position: absolute; right: -26px; bottom: -18px; width: 130px; height: 130px; opacity: 0.12; pointer-events: none; }
+    .carta .agua svg { width: 100%; height: 100%; stroke-width: 1.2; }
+    .carta .kick { font-size: 8.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.8; }
+    .carta .ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; margin-top: 14px; }
+    .carta .tit { margin-top: 14px; font-size: 15.5px; line-height: 1.1; font-weight: 800; text-transform: uppercase; letter-spacing: -0.01em; }
+    .carta .tit.serif { font-family: "Playfair Display", serif; font-weight: 600; text-transform: none; font-size: 20px; letter-spacing: 0; line-height: 1.08; }
+    .carta .meta { margin-top: auto; }
+    .carta .meta b { display: block; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+    .carta .meta span { display: block; font-size: 10.5px; opacity: 0.8; margin-top: 2px; }
+    .carta .chip { display: inline-block; margin-top: 7px; font-size: 8.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 7px; border-radius: 6px; }
+    .carta .cta { margin-top: 11px; display: inline-flex; align-self: flex-start; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; padding: 6px 11px; border-radius: 999px; }
+
+    /* Variantes de tarjeta: guinda en tres tonos y blanco */
+    .v-vino { background: linear-gradient(165deg, #842447, #741c3c 50%, #661834); color: #fff; }
+    .v-vino-claro { background: linear-gradient(165deg, #b75a7c, #a74c6f 50%, #984063); color: #fff; }
+    .v-vino-medio { background: linear-gradient(165deg, #9c3d61, #8a2f53 50%, #7c2849); color: #fff; }
+    .v-vino .ico, .v-vino-claro .ico, .v-vino-medio .ico { background: rgba(255, 255, 255, 0.14); color: #fff; }
+    .v-vino .chip, .v-vino-claro .chip, .v-vino-medio .chip { background: rgba(255, 255, 255, 0.16); color: #fff; }
+    .v-vino .cta, .v-vino-claro .cta, .v-vino-medio .cta { background: #fff; color: var(--vino); }
+    .v-vino .agua, .v-vino-claro .agua, .v-vino-medio .agua { color: #fff; }
+
+    .v-blanco { background: #ffffff; color: #2a1a1f; }
+    .v-blanco .kick { color: var(--suave); }
+    .v-blanco .tit { color: var(--vino); }
+    .v-blanco .meta b { color: var(--vino-oscuro); }
+    .v-blanco .ico { background: var(--vino); color: #fff; }
+    .v-blanco .chip { background: rgba(116, 28, 60, 0.08); color: var(--vino); }
+    .v-blanco .cta { background: var(--vino); color: #fff; }
+    .v-blanco .agua { color: var(--vino); }
+    .v-blanco .borde { box-shadow: inset 0 0 0 1px rgba(116, 28, 60, 0.12); }
+
+    .fuente { margin-top: 16px; font-size: 11.5px; color: var(--suave); }
+
+    /* ================= Celular y tablet ================= */
+    @media (max-width: 600px) {
+      .hero { min-height: auto; padding: 34px 0 30px; }
+      .hero h1 { font-size: clamp(29px, 8.4vw, 38px); margin-top: 16px; }
+      .buscador { margin-top: 26px; border-radius: 22px; }
+      form#form { padding: 16px 14px 12px 16px; }
+      textarea { font-size: 16px; min-height: 48px; }
+      .lugar { height: 36px; font-size: 12.5px; padding: 0 12px 0 10px; }
+      .sugerencias { flex-wrap: nowrap; overflow-x: auto; margin-right: -14px; padding-right: 14px; scrollbar-width: none; }
+      .sugerencias::-webkit-scrollbar { display: none; }
+      .sugerencias button { flex: none; white-space: nowrap; }
+      .enviar { width: 46px; height: 46px; }
+      .conv-cabeza { padding: 12px 16px 4px; }
+      main#chat { max-height: 58svh; }
+      .msg { max-width: 92%; }
+      .consultados { margin-top: 30px; }
+      .pill { height: 42px; font-size: 13px; padding: 0 15px 0 12px; }
+      .nota-hero { font-size: 11.5px; align-items: flex-start; text-align: left; }
+      .etiqueta { font-size: 12px; height: 36px; padding-left: 42px; }
+      .etiqueta i { width: 27px; height: 27px; }
+      .populares { padding-top: 80px; }
+      .ruedo { height: 350px; }
+      .cinta { top: 18px; gap: 14px; }
+    }
+
+    /* ================= Animación de entrada (una sola vez) =================
+       Usa las propiedades translate/scale/clip-path sueltas (no transform) para no chocar
+       con los transform que ya usan el carrusel y el centrado. */
+    html.intro .nav { opacity: 0; translate: 0 -9px; }
+    html.intro .micro { opacity: 0; translate: 0 10px; }
+    html.intro .hero h1 span { opacity: 0; translate: 0 15px; clip-path: inset(100% 0 -30% 0); }
+    html.intro .buscador { opacity: 0; translate: 0 22px; scale: 0.99; }
+    html.intro .consultados, html.intro .nota-hero { opacity: 0; translate: 0 12px; }
+    @media (prefers-reduced-motion: reduce) {
+      html.intro .nav, html.intro .micro, html.intro .hero h1 span, html.intro .buscador,
+      html.intro .consultados, html.intro .nota-hero, .aparece { opacity: 1; translate: none; scale: none; clip-path: none; transition: none; }
+      .msg { animation: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+  <script>
+    // Modo elegido antes de pintar (siempre inicia en blanco) y animación de entrada,
+    // con un temporizador de seguridad para que nada se quede invisible.
+    try { if (localStorage.getItem("tema") === "oscuro") document.documentElement.dataset.tema = "oscuro"; } catch {}
+    document.documentElement.classList.add("intro");
+    setTimeout(function () { document.documentElement.classList.remove("intro"); }, 3500);
+  </script>
+</head>
+<body>
+  <div class="fondo" aria-hidden="true"><div class="estrellas" id="estA"></div><div class="estrellas" id="estB"></div></div>
+
+  <div class="cont">
+    <nav class="nav" aria-label="Principal">
+      <a class="marca" href="#" aria-label="Trámites Ensenada, inicio">
+        <img class="logo" src="/logo-icono.png" width="48" height="40" alt="" />
+        <span class="wm"><small>TRÁMITES</small><b>ENSENADA</b></span>
+      </a>
+      <div class="links">
+        <a href="#asistente">Asistente</a>
+        <a href="#populares">Más consultados</a>
+        <a href="/panel">Panel ciudadano</a>
+      </div>
+      <div class="nav-der">
+        <button class="tema" id="tema" type="button" aria-label="Activar modo noche" title="Modo noche">
+          <svg class="luna" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></svg>
+          <svg class="sol" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+        </button>
+        <a class="btn" href="/panel"><span>Panel<span class="largo"> ciudadano</span></span></a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-deco" aria-hidden="true"><canvas id="particulas"></canvas></div>
+
+      <p class="micro">Asistente municipal <span>· Ensenada, B.C.</span></p>
+      <h1><span class="l1">¿Qué trámite necesitas?</span><span class="l2">Te decimos cómo resolverlo.</span></h1>
+
+      <div class="buscador" id="asistente">
+        <div class="conversacion" id="conversacion" hidden>
+          <div class="conv-cabeza">
+            <span class="quien">Asistente <em>DEMO NO OFICIAL</em></span>
+            <button type="button" id="nueva">Nueva consulta</button>
+          </div>
+          <main id="chat" aria-live="polite"></main>
+        </div>
+        <form id="form">
+          <textarea id="entrada" rows="1" placeholder="Pregúntame lo que necesitas hacer…" aria-label="Pregúntame lo que necesitas hacer"></textarea>
+          <div class="sugerencias" id="sugerencias" aria-label="Preguntas de ejemplo">
+            <button type="button">Quiero poner un puesto de tacos, ¿qué permiso necesito?</button>
+            <button type="button">¿Cómo pago el predial?</button>
+            <button type="button">Voy a construir una barda en mi casa</button>
+            <button type="button">¿Qué trámites puedo hacer en línea?</button>
+          </div>
+          <div class="acciones">
+            <span class="lugar">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>
+              Ensenada, B.C.
+            </span>
+            <span class="espacio"></span>
+            <button class="mic" id="mic" type="button" aria-label="Dictar con voz" title="Dictar con voz" hidden>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" /></svg>
+            </button>
+            <button class="enviar" id="enviar" type="submit" aria-label="Enviar">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="consultados" id="consultados" hidden>
+        <p class="consultados-tit">Lo más consultado</p>
+        <div class="marquee" id="marquee"><div class="pista" id="pista"></div></div>
+      </div>
+
+      <p class="nota-hero">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5v.5" /></svg>
+        <span><b>Demo no oficial</b> · Basado en el catálogo público del Ayuntamiento · Consulta siempre con la dependencia.</span>
+      </p>
+    </section>
+
+    <section class="populares aparece" id="populares" hidden>
+      <div class="etiqueta">
+        <i aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8" /><path d="M15 7h6v6" /></svg></i>
+        <b style="font-weight:400">Costos y tiempos oficiales</b>
+      </div>
+      <h2>Lo que más busca <span>Ensenada</span></h2>
+      <p class="sub">Toca una tarjeta y el asistente te explica todo al instante.</p>
+      <div class="ruedo" id="ruedo" aria-hidden="true"><div class="cinta" id="cinta"></div></div>
+      <p class="fuente">Orden según el ranking público de la Ventanilla Ensenada. Costos y tiempos tomados de cada ficha oficial.</p>
+    </section>
+
+    <footer>
+      <img class="logo-pie" src="/logo-completo.png" width="160" height="142" alt="Trámites Ensenada, tu asistente municipal" />
+      Trámites Ensenada · <b>Demo no oficial</b>. No es un sitio del Ayuntamiento.<br />
+      Información del catálogo público de ventanilla.ensenada.gob.mx · <a href="/panel">Panel de demanda ciudadana</a>
+    </footer>
+  </div>
+
+  <script src="/base.js"></script>
+  <script>
+    // ================= Animación de entrada =================
+    (function () {
+      const raiz = document.documentElement;
+      const terminar = () => {
+        document.getAnimations?.().forEach((a) => { if (String(a.id).startsWith("intro:")) a.cancel(); });
+        raiz.classList.remove("intro");
+      };
+      if (!raiz.classList.contains("intro") || reducirMovimiento || !Element.prototype.animate) return terminar();
+      const D = innerWidth <= 700 ? 0.66 : 1;
+      const EXPO = "cubic-bezier(.16,1,.3,1)";
+      let n = 0, ultima = null;
+      function play(el, desde, dur, retraso) {
+        if (!el) return;
+        const hasta = { opacity: 1 };
+        if (desde.translate) hasta.translate = "0 0";
+        if (desde.scale) hasta.scale = "1";
+        if (desde.clipPath) hasta.clipPath = "inset(-30% 0 -30% 0)";
+        const a = el.animate([desde, hasta], { duration: dur, delay: retraso, easing: EXPO, fill: "both" });
+        a.id = "intro:" + n++;
+        ultima = a;
+      }
+      const Y = (px) => `0 ${px * D}px`;
+      const [l1, l2] = document.querySelectorAll(".hero h1 span");
+      play(document.querySelector(".nav"), { opacity: 0, translate: Y(-9) }, 620, 60);
+      play(document.querySelector(".micro"), { opacity: 0, translate: Y(10) }, 600, 180);
+      play(l1, { opacity: 0, translate: Y(15), clipPath: "inset(100% 0 -30% 0)" }, 900, 280);
+      play(l2, { opacity: 0, translate: Y(15), clipPath: "inset(100% 0 -30% 0)" }, 900, 380);
+      play(document.querySelector(".buscador"), { opacity: 0, translate: Y(22), scale: 0.99 }, 900, 560);
+      play(document.querySelector(".consultados"), { opacity: 0, translate: Y(12) }, 700, 820);
+      play(document.querySelector(".nota-hero"), { opacity: 0, translate: Y(12) }, 700, 940);
+      ultima?.finished.then(terminar).catch(terminar);
+    })();
+
+    // ================= Chat =================
+    const chat = document.getElementById("chat");
+    const form = document.getElementById("form");
+    const entrada = document.getElementById("entrada");
+    const enviar = document.getElementById("enviar");
+    const conversacionEl = document.getElementById("conversacion");
+    const sugerencias = document.getElementById("sugerencias");
+    let conversacion = null;
+    let ocupado = false;
+
+    // Markdown mínimo y seguro: primero se escapa todo el HTML.
+    function escapar(s) {
+      return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+    }
+    function enLinea(s) {
+      return escapar(s)
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g, "$1<em>$2</em>")
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+        .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+    }
+    function markdown(texto) {
+      const html = [];
+      let lista = null;
+      const cerrar = () => { if (lista) { html.push(`</${lista}>`); lista = null; } };
+      for (const linea of texto.split("\n")) {
+        const vineta = linea.match(/^\s*[-*•]\s+(.*)/);
+        const numero = linea.match(/^\s*\d+[.)]\s+(.*)/);
+        const titulo = linea.match(/^#{1,4}\s+(.*)/);
+        if (vineta || numero) {
+          const tipo = vineta ? "ul" : "ol";
+          if (lista !== tipo) { cerrar(); html.push(`<${tipo}>`); lista = tipo; }
+          html.push(`<li>${enLinea((vineta || numero)[1])}</li>`);
+        } else if (titulo) {
+          cerrar(); html.push(`<h4>${enLinea(titulo[1])}</h4>`);
+        } else if (linea.trim() === "") {
+          cerrar();
+        } else {
+          cerrar(); html.push(`<p>${enLinea(linea)}</p>`);
+        }
+      }
+      cerrar();
+      return html.join("");
+    }
+
+    function burbuja(clase, contenido = "") {
+      const div = document.createElement("div");
+      div.className = `msg ${clase}`;
+      div.innerHTML = contenido;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
+    }
+    const indicador = (texto) => `<span class="estado"><span class="puntos"><i></i><i></i><i></i></span>${escapar(texto)}</span>`;
+
+    async function preguntar(texto) {
+      if (ocupado || !texto.trim()) return;
+      ocupado = true; enviar.disabled = true;
+      conversacionEl.hidden = false;
+      sugerencias.hidden = true;
+      const yo = burbuja("yo"); yo.textContent = texto;
+      const bot = burbuja("bot", indicador("Pensando…"));
+      let respuesta = "";
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mensaje: texto, conversacion }),
+        });
+        const lector = res.body.getReader();
+        const decodificador = new TextDecoder();
+        let bufer = "";
+        while (true) {
+          const { value, done } = await lector.read();
+          if (done) break;
+          bufer += decodificador.decode(value, { stream: true });
+          const eventos = bufer.split("\n\n");
+          bufer = eventos.pop();
+          for (const bloque of eventos) {
+            const evento = bloque.match(/^event: (.*)$/m)?.[1];
+            const datos = JSON.parse(bloque.match(/^data: (.*)$/m)?.[1] ?? "{}");
+            if (evento === "conversacion") conversacion = datos.id;
+            if (evento === "texto") { respuesta += datos.delta; bot.innerHTML = markdown(respuesta); }
+            if (evento === "estado") bot.innerHTML = markdown(respuesta) + indicador(datos.texto);
+            if (evento === "error") { conversacion = null; respuesta += `\n\n⚠️ ${datos.texto}`; bot.innerHTML = markdown(respuesta); }
+            chat.scrollTop = chat.scrollHeight;
+          }
+        }
+        if (!respuesta) bot.innerHTML = markdown("No recibí respuesta. Intenta de nuevo.");
+      } catch {
+        bot.innerHTML = markdown("⚠️ No me pude conectar. Revisa tu conexión e intenta de nuevo.");
+      }
+      ocupado = false; enviar.disabled = false;
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const texto = entrada.value;
+      entrada.value = ""; entrada.style.height = "";
+      preguntar(texto);
+    });
+    entrada.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+    });
+    entrada.addEventListener("input", () => {
+      entrada.style.height = "auto";
+      entrada.style.height = Math.min(entrada.scrollHeight, 160) + "px";
+    });
+    // Preguntas de ejemplo: al tocar una se envía sola.
+    sugerencias.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (b) preguntar(b.textContent);
+    });
+
+    // Nueva consulta: limpia la conversación y vuelve al buscador vacío.
+    document.getElementById("nueva").addEventListener("click", () => {
+      if (ocupado) return;
+      conversacion = null;
+      chat.innerHTML = "";
+      conversacionEl.hidden = true;
+      sugerencias.hidden = false;
+      entrada.focus();
+    });
+
+    // Dictado por voz con el reconocimiento del propio navegador (sin costo).
+    // Llena el campo con lo que dices; tú decides cuándo enviar. Si no hay soporte, el botón no aparece.
+    const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const mic = document.getElementById("mic");
+    if (Reconocimiento) {
+      mic.hidden = false;
+      let dictado = null;
+      mic.addEventListener("click", () => {
+        if (dictado) return dictado.stop();
+        dictado = new Reconocimiento();
+        dictado.lang = "es-MX";
+        dictado.interimResults = true;
+        const antes = entrada.value.trim() ? entrada.value.trimEnd() + " " : "";
+        dictado.onresult = (e) => {
+          entrada.value = antes + [...e.results].map((r) => r[0].transcript).join("");
+          entrada.dispatchEvent(new Event("input"));
+        };
+        dictado.onend = () => {
+          dictado = null;
+          mic.classList.remove("escuchando");
+          mic.setAttribute("aria-label", "Dictar con voz");
+          entrada.focus();
+        };
+        mic.classList.add("escuchando");
+        mic.setAttribute("aria-label", "Detener dictado");
+        try { dictado.start(); } catch { dictado.onend(); }
+      });
+    }
+
+    // Desde el carrusel: subir al asistente y preguntar.
+    function preguntarDesdeCarrusel(pregunta) {
+      document.getElementById("asistente").scrollIntoView({ behavior: reducirMovimiento ? "auto" : "smooth", block: "start" });
+      preguntar(pregunta);
+    }
+
+    // ================= Trámites populares: píldoras del hero y tarjetas =================
+    const ICONOS = {
+      recibo: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+      anillos: '<circle cx="9" cy="14.5" r="5"/><circle cx="15" cy="14.5" r="5"/><path d="M10 3.5h4l-2 3z"/>',
+      casa: '<path d="M3 11l9-7 9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/>',
+      casaNo: '<path d="M3 11l9-7 9 7"/><path d="M5 9.5V20h14V9.5"/><path d="m10 12 4 4M14 12l-4 4"/>',
+      medalla: '<circle cx="12" cy="9" r="5.5"/><path d="M8.6 13.4 7 21l5-2.6 5 2.6-1.6-7.6"/>',
+      acta: '<rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M7 9h10M7 12.5h6"/><circle cx="17" cy="17.5" r="2.6"/><path d="M15.6 19.8 15 22.5l2-1 2 1-.6-2.7"/>',
+      auto: '<path d="M3 13l2-5a2 2 0 0 1 1.9-1.3h10.2A2 2 0 0 1 19 8l2 5v4a1 1 0 0 1-1 1h-1.2M3 13v4a1 1 0 0 0 1 1h1.2M3 13h18"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
+      documento: '<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+      documentoOk: '<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/><path d="m9 14.5 2 2 4-4"/>',
+      plano: '<path d="M3 6.5l6-3 6 3 6-3v14l-6 3-6-3-6 3z"/><path d="M9 3.5v14M15 6.5v14"/>',
+      corazon: '<path d="M12 20s-7.5-4.6-9.2-9.3A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 9.2 3.5C19.5 15.4 12 20 12 20z"/><path d="m12 7.5-1.6 4 3 1.6-1.4 3.6"/>',
+      escudo: '<path d="M12 3l8 3v6c0 4.6-3.4 8.3-8 9-4.6-.7-8-4.4-8-9V6z"/><path d="m9 12 2 2 4-4"/>',
+      cono: '<path d="M10 4h4l4.5 15h-13z"/><path d="M8.2 10h7.6M7 14.5h10M3.5 19.5h17"/>',
+      familia: '<circle cx="8" cy="7" r="3"/><circle cx="17" cy="9.5" r="2.3"/><path d="M3 20v-1.5a5 5 0 0 1 10 0V20"/><path d="M14 20v-1a3 3 0 0 1 6 0v1"/>',
+    };
+    const svg = (nombre, tam) => `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONOS[nombre] ?? ICONOS.documento}</svg>`;
+    const VARIANTES = ["vino", "blanco", "vino-claro", "blanco", "vino-medio", "blanco"];
+
+    function tarjeta(p, i) {
+      const v = VARIANTES[i % VARIANTES.length];
+      const serif = v === "blanco" && i % 4 === 1 ? " serif" : "";
+      return `<div class="carta v-${v}" data-i="${i}">
+        <div class="agua">${svg(p.icono, 24)}</div>
+        <div class="kick">${escapar(p.categoria)}</div>
+        <div class="ico">${svg(p.icono, 20)}</div>
+        <div class="tit${serif}">${escapar(p.titulo)}</div>
+        <div class="meta">
+          <b>${escapar(p.costo)}</b>
+          <span>${escapar(p.tiempo ? "Respuesta: " + p.tiempo : "")}</span>
+          ${p.enLinea ? '<em class="chip">En línea</em>' : '<em class="chip">Presencial</em>'}
+        </div>
+        <div class="cta">Pregúntale <span aria-hidden="true">→</span></div>
+        <div class="borde"></div>
+      </div>`;
+    }
+
+    // Cinta infinita que se mueve sola: dos copias seguidas del contenido; al recorrer una copia
+    // completa se regresa exactamente su ancho, así el salto no se nota. Se puede arrastrar con el
+    // dedo o el mouse, y un toque sin arrastre activa el elemento tocado.
+    function cintaInfinita(contenedor, cinta, { velocidad, lento, alTocar }) {
+      let x = 0, ultimo = null, activo = false, despacio = false, arrastre = null;
+      function mover(dx) {
+        const ancho = cinta.scrollWidth / 2;
+        if (!ancho) return;
+        x = (((x + dx) % ancho) - ancho) % ancho; // siempre entre -ancho y 0
+        cinta.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
+      }
+      contenedor.addEventListener("pointerdown", (e) => {
+        arrastre = { inicio: e.clientX, previo: e.clientX, movido: false, id: e.pointerId };
+      });
+      contenedor.addEventListener("pointermove", (e) => {
+        if (!arrastre || e.pointerId !== arrastre.id) return;
+        if (!arrastre.movido && Math.abs(e.clientX - arrastre.inicio) > 6) {
+          arrastre.movido = true;
+          contenedor.setPointerCapture(e.pointerId);
+          contenedor.classList.add("arrastrando");
+        }
+        if (arrastre.movido) { mover(e.clientX - arrastre.previo); arrastre.previo = e.clientX; }
+      });
+      const soltar = (e) => {
+        if (!arrastre) return;
+        const fueToque = !arrastre.movido;
+        contenedor.classList.remove("arrastrando");
+        arrastre = null;
+        if (fueToque && e.type === "pointerup") {
+          const el = document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-i]");
+          if (el && contenedor.contains(el)) alTocar(Number(el.dataset.i));
+        }
+      };
+      contenedor.addEventListener("pointerup", soltar);
+      contenedor.addEventListener("pointercancel", soltar);
+      // Teclado (Enter / espacio sobre una píldora): el clic llega sin puntero (detail === 0).
+      contenedor.addEventListener("click", (e) => {
+        const el = e.target.closest("[data-i]");
+        if (el && e.detail === 0) alTocar(Number(el.dataset.i));
+      });
+
+      mover(0);
+      if (reducirMovimiento) return;
+      function cuadro(t) {
+        if (!activo) return;
+        if (ultimo !== null && !arrastre?.movido) mover(-(despacio ? lento : velocidad) * Math.min((t - ultimo) / 1000, 0.1));
+        ultimo = t;
+        requestAnimationFrame(cuadro);
+      }
+      contenedor.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") despacio = true; });
+      contenedor.addEventListener("pointerleave", () => (despacio = false));
+      contenedor.addEventListener("focusin", () => (despacio = true));
+      contenedor.addEventListener("focusout", () => (despacio = false));
+      // Solo se mueve cuando se ve en pantalla (ahorra batería en celulares).
+      new IntersectionObserver((entradas) => {
+        const ver = entradas[0].isIntersecting;
+        if (ver && !activo) { activo = true; ultimo = null; requestAnimationFrame(cuadro); }
+        if (!ver) activo = false;
+      }).observe(contenedor);
+      document.addEventListener("visibilitychange", () => { ultimo = null; });
+    }
+
+    async function iniciarPopulares() {
+      let lista;
+      try { lista = await (await fetch("/api/populares")).json(); } catch { return; }
+      if (!Array.isArray(lista) || !lista.length) return;
+      const preguntarPopular = (i) => preguntarDesdeCarrusel(lista[i].pregunta);
+
+      // Píldoras del hero. La segunda copia es solo para el ciclo infinito y no se anuncia ni se enfoca.
+      const consultados = document.getElementById("consultados");
+      const pista = document.getElementById("pista");
+      const pildora = (p, i, copia) =>
+        `<button type="button" class="pill" data-i="${i}"${copia ? ' tabindex="-1" aria-hidden="true"' : ""}>${svg(p.icono, 20)}<span>${escapar(p.titulo)}</span><i class="punto" aria-hidden="true"></i></button>`;
+      pista.innerHTML = lista.map((p, i) => pildora(p, i, false)).join("") + lista.map((p, i) => pildora(p, i, true)).join("");
+      consultados.hidden = false;
+      cintaInfinita(document.getElementById("marquee"), pista, { velocidad: 30, lento: 8, alTocar: preguntarPopular });
+
+      // Tarjetas de la sección de abajo.
+      const seccion = document.getElementById("populares");
+      seccion.hidden = false;
+      new IntersectionObserver((entradas, obs) => {
+        if (entradas[0].isIntersecting) { seccion.classList.add("visible"); obs.disconnect(); }
+      }, { threshold: 0.15 }).observe(seccion);
+      const cinta = document.getElementById("cinta");
+      cinta.innerHTML = [...lista, ...lista].map((p, i) => tarjeta(p, i % lista.length)).join("");
+      // Palabras largas ("Estacionamiento") no caben en la tarjeta: se reduce la letra solo donde hace falta.
+      const ajustarTitulos = () => {
+        for (const t of cinta.querySelectorAll(".tit")) {
+          t.style.fontSize = "";
+          let tam = parseFloat(getComputedStyle(t).fontSize);
+          while (t.scrollWidth > t.clientWidth && tam > 11) t.style.fontSize = (tam -= 0.5) + "px";
+        }
+      };
+      ajustarTitulos();
+      document.fonts?.ready.then(ajustarTitulos);
+      cintaInfinita(document.getElementById("ruedo"), cinta, { velocidad: 38, lento: 10, alTocar: preguntarPopular });
+    }
+    iniciarPopulares();
+  </script>
+</body>
+</html>

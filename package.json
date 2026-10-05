@@ -1,0 +1,18 @@
+{
+  "name": "tramites-ensenada",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Demo: asistente con IA para trámites municipales de Ensenada (no oficial)",
+  "type": "module",
+  "scripts": {
+    "catalogo": "node scripts/actualizar-catalogo.mjs",
+    "start": "node --env-file-if-exists=.env server.mjs",
+    "dev": "node --watch --env-file-if-exists=.env server.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
